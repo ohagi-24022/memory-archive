@@ -5,6 +5,7 @@ create table if not exists public.archives (
   url text not null unique,
   title text not null,
   og_image_url text,
+  favicon_url text,
   description text,
   summary text,
   user_memo text,
@@ -27,3 +28,5 @@ create index if not exists archives_created_at_idx on public.archives(created_at
 create index if not exists archive_tags_archive_id_idx on public.archive_tags(archive_id);
 create index if not exists archive_tags_tag_id_idx on public.archive_tags(tag_id);
 
+alter table if exists public.archives
+  add column if not exists favicon_url text;

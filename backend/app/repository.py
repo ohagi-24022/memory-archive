@@ -59,6 +59,15 @@ def update_archive(archive_id: str, payload: dict, tags: list[str] | None = None
     return get_archive(archive_id)
 
 
+def delete_archive(archive_id: str) -> bool:
+    client = get_client()
+    existing = get_archive(archive_id)
+    if not existing:
+        return False
+    client.table("archives").delete().eq("id", archive_id).execute()
+    return True
+
+
 def sync_tags(archive_id: str, tag_names: list[str]) -> None:
     client = get_client()
     client.table("archive_tags").delete().eq("archive_id", archive_id).execute()
@@ -67,4 +76,3 @@ def sync_tags(archive_id: str, tag_names: list[str]) -> None:
         tag_result = client.table("tags").upsert({"name": name}, on_conflict="name").execute()
         tag_id = tag_result.data[0]["id"]
         client.table("archive_tags").insert({"archive_id": archive_id, "tag_id": tag_id}).execute()
-

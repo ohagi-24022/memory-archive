@@ -1,6 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Bookmark, BookOpen, ExternalLink, Library, Loader2, Plus, Save, Search, Sparkles } from "lucide-react";
+import {
+  Bookmark,
+  BookOpen,
+  ExternalLink,
+  Library,
+  Loader2,
+  Plus,
+  Save,
+  Search,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import "./styles.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -12,6 +23,7 @@ const sampleArchives = [
     title: "静かな知識の森を歩くための断章",
     description: "保存された記憶が、後日の読書へと戻る道しるべになる。",
     og_image_url: "",
+    favicon_url: "/icons/icon-192.png",
     summary: "・記憶は書架に収まり再読を待つ\n・要約は本質への細い灯である\n・メモは読者自身の余白を守る",
     user_memo: "あとで設計の比喩として読み返す。",
     tags: ["設計", "読書"],
@@ -33,6 +45,7 @@ async function request(path, options = {}) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.detail || "通信に失敗しました");
   }
+  if (response.status === 204) return null;
   return response.json();
 }
 
@@ -61,16 +74,16 @@ function useArchives() {
   useEffect(() => {
     load();
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/memory-archive/sw.js").catch(() => {});
+      navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {});
     }
   }, []);
 
   const selected = archives.find((archive) => archive.id === selectedId) || archives[0] || null;
-  return { archives, selected, setSelectedId, loading, error, setArchives, reload: load };
+  return { archives, selected, setSelectedId, loading, error, setArchives };
 }
 
 function App() {
-  const { archives, selected, setSelectedId, loading, error, setArchives, reload } = useArchives();
+  const { archives, selected, setSelectedId, loading, error, setArchives } = useArchives();
   const [url, setUrl] = useState(parseSharedUrl());
   const [query, setQuery] = useState("");
   const [saving, setSaving] = useState(false);
@@ -116,11 +129,25 @@ function App() {
     });
   };
 
+  const deleteArchive = async (archive) => {
+    const ok = window.confirm(`「${archive.title}」を削除しますか？`);
+    if (!ok) return;
+    if (!archive.id.startsWith("sample-")) {
+      await request(`/api/archives/${archive.id}`, { method: "DELETE" });
+    }
+    setArchives((current) => {
+      const next = current.filter((item) => item.id !== archive.id);
+      setSelectedId(next[0]?.id || null);
+      return next;
+    });
+    setNotice("蔵書を削除しました。");
+  };
+
   return (
     <main className="app-shell">
       <aside className="archive-rail">
         <div className="brand">
-          <Library aria-hidden="true" />
+          <img className="brand-mark" src="/icons/icon-192.png" alt="" />
           <div>
             <p>記憶のアーカイブ</p>
             <h1>追憶ノ書架</h1>
@@ -160,6 +187,7 @@ function App() {
                 key={archive.id}
                 onClick={() => setSelectedId(archive.id)}
               >
+                <SiteIcon archive={archive} className="book-favicon" />
                 <span className="book-title">{archive.title}</span>
                 <span className="book-label">{archive.tags?.[0] || "未分類"}</span>
               </button>
@@ -174,7 +202,7 @@ function App() {
             activeBookmark={activeBookmark}
             setActiveBookmark={setActiveBookmark}
             onMemoChange={updateMemo}
-            onReload={reload}
+            onDelete={deleteArchive}
           />
         ) : (
           <div className="empty-page">
@@ -187,6 +215,24 @@ function App() {
   );
 }
 
+function SiteIcon({ archive, className = "" }) {
+  const [failed, setFailed] = useState(false);
+  const iconUrl = archive.favicon_url || fallbackFaviconUrl(archive.url);
+  if (!iconUrl || failed) {
+    return <Library className={className} aria-hidden="true" />;
+  }
+  return <img className={className} src={iconUrl} alt="" onError={() => setFailed(true)} />;
+}
+
+function fallbackFaviconUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return `${parsed.origin}/favicon.ico`;
+  } catch {
+    return "";
+  }
+}
+
 function PageLoader() {
   return (
     <div className="page-loader" aria-label="読み込み中">
@@ -197,7 +243,7 @@ function PageLoader() {
   );
 }
 
-function Reader({ archive, activeBookmark, setActiveBookmark, onMemoChange }) {
+function Reader({ archive, activeBookmark, setActiveBookmark, onMemoChange, onDelete }) {
   const [memo, setMemo] = useState(archive.user_memo || "");
   const [saved, setSaved] = useState(true);
 
@@ -229,10 +275,18 @@ function Reader({ archive, activeBookmark, setActiveBookmark, onMemoChange }) {
       </div>
 
       <div className="page left-page">
+        <div className="reader-actions">
+          <button className="delete-button" type="button" onClick={() => onDelete(archive)} aria-label="この蔵書を削除">
+            <Trash2 aria-hidden="true" />
+          </button>
+        </div>
         <div className="image-frame">
           {archive.og_image_url ? <img src={archive.og_image_url} alt="" /> : <BookOpen aria-hidden="true" />}
         </div>
-        <p className="date-line">{new Date(archive.created_at).toLocaleDateString("ja-JP")}</p>
+        <div className="source-meta">
+          <SiteIcon archive={archive} className="detail-favicon" />
+          <p className="date-line">{new Date(archive.created_at).toLocaleDateString("ja-JP")}</p>
+        </div>
         <h2>{archive.title}</h2>
         <p className="description">{archive.description || "概要文はまだ綴じ込まれていません。"}</p>
         <a className="source-link" href={archive.url} target="_blank" rel="noreferrer">
@@ -294,4 +348,3 @@ function Typewriter({ text }) {
 }
 
 createRoot(document.getElementById("root")).render(<App />);
-

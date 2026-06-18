@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
@@ -11,6 +11,7 @@ class ScrapedPage:
     title: str
     description: str
     og_image_url: str | None
+    favicon_url: str | None
     text: str
 
 
@@ -31,6 +32,25 @@ def _visible_text(soup: BeautifulSoup) -> str:
     paragraphs = [p.get_text(" ", strip=True) for p in root.select("p, h1, h2, h3, li")]
     text = "\n".join(line for line in paragraphs if line)
     return text[:12000]
+
+
+def _favicon_url(soup: BeautifulSoup, page_url: str) -> str | None:
+    selectors = [
+        "link[rel~='icon']",
+        "link[rel='shortcut icon']",
+        "link[rel='apple-touch-icon']",
+        "link[rel='mask-icon']",
+    ]
+    for selector in selectors:
+        tag = soup.select_one(selector)
+        href = tag.get("href") if tag else ""
+        if href:
+            return urljoin(page_url, str(href).strip())
+
+    parsed = urlparse(page_url)
+    if parsed.scheme and parsed.netloc:
+        return f"{parsed.scheme}://{parsed.netloc}/favicon.ico"
+    return None
 
 
 async def scrape_page(url: str) -> ScrapedPage:
@@ -54,6 +74,6 @@ async def scrape_page(url: str) -> ScrapedPage:
         title=title or "無題の蔵書",
         description=description,
         og_image_url=og_image or None,
+        favicon_url=_favicon_url(soup, str(response.url)),
         text=_visible_text(soup),
     )
-

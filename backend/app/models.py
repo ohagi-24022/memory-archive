@@ -21,9 +21,9 @@ class Archive(BaseModel):
     url: str
     title: str
     og_image_url: Optional[str] = None
+    favicon_url: Optional[str] = None
     description: Optional[str] = None
     summary: Optional[str] = None
     user_memo: Optional[str] = None
     created_at: datetime
     tags: list[str] = Field(default_factory=list)
-

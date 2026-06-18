@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.models import Archive, ArchiveCreate, ArchiveUpdate
-from app.repository import RepositoryNotConfigured, create_archive, get_archive, list_archives, update_archive
+from app.repository import RepositoryNotConfigured, create_archive, delete_archive, get_archive, list_archives, update_archive
 from app.scraper import scrape_page
 from app.summarizer import summarize_article
 
@@ -35,6 +35,7 @@ async def post_archive(payload: ArchiveCreate) -> dict:
                 "title": page.title,
                 "description": page.description,
                 "og_image_url": page.og_image_url,
+                "favicon_url": page.favicon_url,
                 "summary": summary,
                 "user_memo": "",
             },
@@ -76,3 +77,12 @@ def patch_archive(archive_id: str, payload: ArchiveUpdate) -> dict:
         raise HTTPException(status_code=404, detail="Archive not found")
     return archive
 
+
+@app.delete("/api/archives/{archive_id}", status_code=204)
+def remove_archive(archive_id: str) -> None:
+    try:
+        deleted = delete_archive(archive_id)
+    except RepositoryNotConfigured as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Archive not found")
