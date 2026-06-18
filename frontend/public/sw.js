@@ -1,5 +1,8 @@
-const CACHE_NAME = "tsuioku-no-shoka-v1";
-const APP_SHELL = ["/", "/manifest.webmanifest"];
+const CACHE_NAME = "tsuioku-no-shoka-v2"; // バージョンをv2にして強制更新させます
+const APP_SHELL = [
+  "/memory-archive/",
+  "/memory-archive/manifest.webmanifest"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
@@ -13,6 +16,9 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request).then((response) => response || caches.match("/"))));
+  event.respondWith(
+    fetch(event.request).catch(() => 
+      caches.match(event.request).then((response) => response || caches.match("/memory-archive/"))
+    )
+  );
 });
-
