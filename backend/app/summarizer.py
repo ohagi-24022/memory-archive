@@ -28,7 +28,7 @@ async def summarize_article(title: str, description: str, text: str) -> str:
         return _fallback_summary(title, description)
 
     genai.configure(api_key=settings.gemini_api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash", system_instruction=SYSTEM_PROMPT)
+    model = genai.GenerativeModel("gemini-2.5-flash", system_instruction=SYSTEM_PROMPT)
     prompt = f"タイトル: {title}\n概要: {description}\n本文:\n{text[:12000]}"
     response = await model.generate_content_async(prompt)
     summary = (response.text or "").strip()
