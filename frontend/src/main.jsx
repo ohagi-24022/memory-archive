@@ -61,7 +61,7 @@ function useArchives() {
   useEffect(() => {
     load();
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
+      navigator.serviceWorker.register("/memory-archive/sw.js").catch(() => {});
     }
   }, []);
 
