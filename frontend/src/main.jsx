@@ -217,24 +217,35 @@ function App() {
 }
 
 function SiteIcon({ archive, className = "" }) {
-  const [failed, setFailed] = useState(false);
-  
-  // バックエンドが取得したURLが「http」から始まっていない場合（相対パスなど）はフォールバックに任せる
-  const hasValidFavicon = archive.favicon_url && archive.favicon_url.startsWith("http");
-  const iconUrl = hasValidFavicon ? archive.favicon_url : fallbackFaviconUrl(archive.url);
+  const [errorCount, setErrorCount] = useState(0);
 
-  if (!iconUrl || failed) {
-    // 画像の読み込みに失敗した場合は、綺麗な「本」のアイコンを表示してレイアウト崩れを防ぐ
+  // 最初は「Google」の高画質(128px)で取得を試みる
+  let iconUrl = fallbackFaviconUrl(archive.url, "google");
+
+  // もしGoogleの取得に失敗したら、2回目の挑戦として「DuckDuckGo」のAPIを試す
+  if (errorCount === 1) {
+    iconUrl = fallbackFaviconUrl(archive.url, "duckduckgo");
+  }
+
+  // 両方失敗（errorCountが2以上）、またはURLがおかしい場合は、本（Library）のアイコンを出す
+  if (!iconUrl || errorCount >= 2) {
     return <Library className={className} aria-hidden="true" />;
   }
-  return <img className={className} src={iconUrl} alt="" onError={() => setFailed(true)} />;
+
+  // onErrorが呼ばれるたびにerrorCountを増やし、別のAPIに切り替える
+  return <img className={className} src={iconUrl} alt="" onError={() => setErrorCount((c) => c + 1)} />;
 }
 
-function fallbackFaviconUrl(url) {
+function fallbackFaviconUrl(url, provider = "google") {
   try {
     const parsed = new URL(url);
-    // GoogleのFavicon取得サービスを使って、ドメインから確実にアイコンを取得する
-    return `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=64`;
+    if (provider === "google") {
+      // sz=128 にして、がびがび感を防ぐ高画質バージョンを取得
+      return `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`;
+    } else {
+      // Fly.devなど、Googleが苦手なドメインに強いDuckDuckGoのAPI
+      return `https://icons.duckduckgo.com/ip3/${parsed.hostname}.ico`;
+    }
   } catch {
     return "";
   }
