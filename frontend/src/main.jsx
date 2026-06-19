@@ -217,38 +217,48 @@ function App() {
 }
 
 function SiteIcon({ archive, className = "" }) {
-  const [errorCount, setErrorCount] = useState(0);
+  const [attempt, setAttempt] = useState(0);
 
-  // 最初は「Google」の高画質(128px)で取得を試みる
-  let iconUrl = fallbackFaviconUrl(archive.url, "google");
+  // 画像の取得候補リスト（上から順に試します）
+  const sources = [];
 
-  // もしGoogleの取得に失敗したら、2回目の挑戦として「DuckDuckGo」のAPIを試す
-  if (errorCount === 1) {
-    iconUrl = fallbackFaviconUrl(archive.url, "duckduckgo");
+  // ① 最優先：バックエンド（司書）が取得してくれた本物のアイコンURL
+  if (archive.favicon_url && archive.favicon_url.startsWith("http")) {
+    sources.push(archive.favicon_url);
   }
 
-  // 両方失敗（errorCountが2以上）、またはURLがおかしい場合は、本（Library）のアイコンを出す
-  if (!iconUrl || errorCount >= 2) {
+  // フォールバック用のAPIを設定
+  if (archive.url) {
+    try {
+      const parsed = new URL(archive.url);
+      // ② DuckDuckGo（無い時はちゃんとエラーになるので2番目に最適）
+      sources.push(`https://icons.duckduckgo.com/ip3/${parsed.hostname}.ico`);
+      // ③ 最後の砦：Google（無い時は地球マークを返すので一番最後に回す）
+      sources.push(`https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`);
+    } catch (e) {
+      // URLが不正な場合は無視
+    }
+  }
+
+  // 候補を全て試し終わった（または候補が無い）場合は本のアイコンを表示
+  if (attempt >= sources.length || sources.length === 0) {
     return <Library className={className} aria-hidden="true" />;
   }
 
-  // onErrorが呼ばれるたびにerrorCountを増やし、別のAPIに切り替える
-  return <img className={className} src={iconUrl} alt="" onError={() => setErrorCount((c) => c + 1)} />;
+  // 画像の読み込みに失敗(onError)するたびに、次の候補URLに切り替える
+  return (
+    <img
+      className={className}
+      src={sources[attempt]}
+      alt=""
+      onError={() => setAttempt((current) => current + 1)}
+    />
+  );
 }
 
-function fallbackFaviconUrl(url, provider = "google") {
-  try {
-    const parsed = new URL(url);
-    if (provider === "google") {
-      // sz=128 にして、がびがび感を防ぐ高画質バージョンを取得
-      return `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`;
-    } else {
-      // Fly.devなど、Googleが苦手なドメインに強いDuckDuckGoのAPI
-      return `https://icons.duckduckgo.com/ip3/${parsed.hostname}.ico`;
-    }
-  } catch {
-    return "";
-  }
+// fallbackFaviconUrl 関数はもう使わないので、削除してもOKです（残しておく場合は以下の通り空にしておきます）
+function fallbackFaviconUrl() {
+  return "";
 }
 
 function PageLoader() {
