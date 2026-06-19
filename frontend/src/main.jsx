@@ -218,15 +218,26 @@ function App() {
 
 function SiteIcon({ archive, className = "" }) {
   const [failed, setFailed] = useState(false);
-  const iconUrl = archive.favicon_url || fallbackFaviconUrl(archive.url);
+  
+  // バックエンドが取得したURLが「http」から始まっていない場合（相対パスなど）はフォールバックに任せる
+  const hasValidFavicon = archive.favicon_url && archive.favicon_url.startsWith("http");
+  const iconUrl = hasValidFavicon ? archive.favicon_url : fallbackFaviconUrl(archive.url);
+
   if (!iconUrl || failed) {
+    // 画像の読み込みに失敗した場合は、綺麗な「本」のアイコンを表示してレイアウト崩れを防ぐ
     return <Library className={className} aria-hidden="true" />;
   }
   return <img className={className} src={iconUrl} alt="" onError={() => setFailed(true)} />;
 }
 
 function fallbackFaviconUrl(url) {
-  return `${BASE_PATH}icons/icon-192.png`;
+  try {
+    const parsed = new URL(url);
+    // GoogleのFavicon取得サービスを使って、ドメインから確実にアイコンを取得する
+    return `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=64`;
+  } catch {
+    return "";
+  }
 }
 
 function PageLoader() {
