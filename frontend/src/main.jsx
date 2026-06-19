@@ -244,7 +244,7 @@ function SiteIcon({ archive, className = "" }) {
 
   // すべての候補を試してもダメだった場合は、本（Library）のアイコンを表示
   if (attempt >= sources.length || sources.length === 0) {
-    return <Library className={className} aria-hidden="true" />;
+    return <BookOpen className={className} aria-hidden="true" />;
   }
 
   return (
