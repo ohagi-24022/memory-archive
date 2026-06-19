@@ -13,6 +13,8 @@ import {
   Trash2,
 } from "lucide-react";
 import "./styles.css";
+import brandIconImg from '/icons/icon-192.png';
+import fallbackFaviconImg from '/favicon.ico';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
@@ -23,7 +25,7 @@ const sampleArchives = [
     title: "静かな知識の森を歩くための断章",
     description: "保存された記憶が、後日の読書へと戻る道しるべになる。",
     og_image_url: "",
-    favicon_url: "/icons/icon-192.png",
+    favicon_url: brandIconImg,
     summary: "・記憶は書架に収まり再読を待つ\n・要約は本質への細い灯である\n・メモは読者自身の余白を守る",
     user_memo: "あとで設計の比喩として読み返す。",
     tags: ["設計", "読書"],
@@ -147,7 +149,7 @@ function App() {
     <main className="app-shell">
       <aside className="archive-rail">
         <div className="brand">
-          <img className="brand-mark" src="/icons/icon-192.png" alt="" />
+          <img className="brand-mark" src={brandIconImg} alt="" />
           <div>
             <p>記憶のアーカイブ</p>
             <h1>追憶ノ書架</h1>
@@ -225,12 +227,7 @@ function SiteIcon({ archive, className = "" }) {
 }
 
 function fallbackFaviconUrl(url) {
-  try {
-    const parsed = new URL(url);
-    return `${parsed.origin}/favicon.ico`;
-  } catch {
-    return "";
-  }
+  return brandIconImg; 
 }
 
 function PageLoader() {
