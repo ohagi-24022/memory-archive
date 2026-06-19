@@ -16,6 +16,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 button,
@@ -588,4 +589,199 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+@media (max-width: 760px) {
+  body {
+    background: #f4f1ea;
+  }
+
+  .app-shell {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .archive-rail {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    min-height: auto;
+    padding: 14px 14px 12px;
+    border-right: 0;
+    border-bottom: 5px solid #c5a880;
+    box-shadow: 0 8px 18px rgba(23, 31, 30, 0.22);
+  }
+
+  .brand {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .brand-mark,
+  .brand svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .brand p {
+    font-size: 11px;
+  }
+
+  .brand h1 {
+    font-size: 22px;
+  }
+
+  .capture-form,
+  .search-box {
+    margin-bottom: 10px;
+  }
+
+  .capture-row,
+  .search-box {
+    padding: 7px;
+    border-radius: 6px;
+  }
+
+  .capture-row button {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+  }
+
+  .notice {
+    margin: 8px 0;
+    font-size: 12px;
+  }
+
+  .shelf {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 86px;
+    grid-template-columns: none;
+    gap: 9px;
+    padding: 8px 2px 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+
+  .book-spine {
+    min-height: 118px;
+    padding: 30px 8px 10px;
+    border-radius: 4px;
+  }
+
+  .book-title {
+    font-size: 13px;
+  }
+
+  .book-label {
+    left: 6px;
+    bottom: 7px;
+    font-size: 10px;
+  }
+
+  .reading-room {
+    flex: 1;
+    padding: 18px 10px 30px;
+    align-items: start;
+    overflow-x: hidden;
+  }
+
+  .open-book {
+    width: 100%;
+    min-height: auto;
+    display: block;
+    filter: drop-shadow(0 12px 18px rgba(49, 39, 24, 0.16));
+  }
+
+  .page {
+    padding: 24px 16px;
+    border-radius: 8px;
+  }
+
+  .left-page {
+    padding-top: 56px;
+  }
+
+  .right-page {
+    margin-top: 12px;
+    box-shadow: none;
+  }
+
+  .reader-actions {
+    top: 12px;
+    right: 12px;
+  }
+
+  .delete-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .bookmark-tabs {
+    position: sticky;
+    top: 12px;
+    right: auto;
+    justify-content: flex-end;
+    gap: 8px;
+    margin: 0 8px -18px 0;
+  }
+
+  .bookmark-tabs button {
+    width: 58px;
+    height: 72px;
+    font-size: 12px;
+  }
+
+  .image-frame {
+    height: 154px;
+    border-width: 7px;
+    margin-bottom: 14px;
+  }
+
+  .book-large-icon {
+    width: 76px;
+    height: 76px;
+  }
+
+  .source-meta {
+    gap: 7px;
+  }
+
+  .page h2 {
+    font-size: 23px;
+    line-height: 1.42;
+  }
+
+  .description {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .source-link {
+    min-height: 36px;
+  }
+
+  .bookmark-panel {
+    min-height: 0;
+    padding: 26px 18px;
+  }
+
+  .bookmark-panel h3 {
+    font-size: 21px;
+    margin-bottom: 18px;
+  }
+
+  .bookmark-panel pre {
+    font-size: 16px;
+    line-height: 1.95;
+  }
+
+  textarea {
+    min-height: 260px;
+    padding: 14px;
+    font-size: 16px;
+  }
 }

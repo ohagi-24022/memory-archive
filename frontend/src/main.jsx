@@ -15,7 +15,7 @@ import {
 import "./styles.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
-const BASE_PATH = import.meta.env.BASE_URL;
+const BASE_PATH = import.meta.env.BASE_URL || "/";
 
 const sampleArchives = [
   {
@@ -75,7 +75,7 @@ function useArchives() {
   useEffect(() => {
     load();
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {});
+      navigator.serviceWorker.register(`${BASE_PATH}sw.js`).catch(() => {});
     }
   }, []);
 
@@ -218,49 +218,38 @@ function App() {
 
 function SiteIcon({ archive, className = "" }) {
   const [attempt, setAttempt] = useState(0);
+  const sources = getFaviconSources(archive);
 
+  if (attempt >= sources.length || sources.length === 0) {
+    return <BookOpen className={className} aria-hidden="true" />;
+  }
+
+  return <img className={className} src={sources[attempt]} alt="" onError={() => setAttempt((current) => current + 1)} />;
+}
+
+function getFaviconSources(archive) {
   const sources = [];
 
-  // ① 司書が取得したアイコン（相対パスの場合は、元のURLを基準にして絶対パスに自動変換！）
   if (archive.favicon_url) {
     try {
-      const absoluteIconUrl = new URL(archive.favicon_url, archive.url).href;
-      sources.push(absoluteIconUrl);
-    } catch (e) {
-      // 変換できない不正なデータの場合は無視
+      sources.push(new URL(archive.favicon_url, archive.url).href);
+    } catch {
+      sources.push(archive.favicon_url);
     }
   }
 
-  // ② 外部APIを使ったフォールバック
   if (archive.url) {
     try {
       const parsed = new URL(archive.url);
       sources.push(`https://icons.duckduckgo.com/ip3/${parsed.hostname}.ico`);
       sources.push(`https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=128`);
-    } catch (e) {
-      // URLが不正な場合は無視
+      sources.push(`${parsed.origin}/favicon.ico`);
+    } catch {
+      return sources;
     }
   }
 
-  // すべての候補を試してもダメだった場合は、本（Library）のアイコンを表示
-  if (attempt >= sources.length || sources.length === 0) {
-    return <BookOpen className={className} aria-hidden="true" />;
-  }
-
-  return (
-    <img
-      className={className}
-      src={sources[attempt]}
-      alt=""
-      // 画像が見つからず404になったら、即座に次の候補URLを試す
-      onError={() => setAttempt((current) => current + 1)}
-    />
-  );
-}
-
-// fallbackFaviconUrl 関数はもう使わないので、削除してもOKです（残しておく場合は以下の通り空にしておきます）
-function fallbackFaviconUrl() {
-  return "";
+  return [...new Set(sources)];
 }
 
 function PageLoader() {
@@ -311,7 +300,7 @@ function Reader({ archive, activeBookmark, setActiveBookmark, onMemoChange, onDe
           </button>
         </div>
         <div className="image-frame">
-          <SiteIcon archive={archive} className="book-large-icon" />
+          {archive.og_image_url ? <img src={archive.og_image_url} alt="" /> : <SiteIcon archive={archive} className="book-large-icon" />}
         </div>
         <div className="source-meta">
           <SiteIcon archive={archive} className="detail-favicon" />

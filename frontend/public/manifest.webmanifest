@@ -2,8 +2,8 @@
   "name": "追憶ノ書架",
   "short_name": "追憶ノ書架",
   "description": "Webの記憶を本として保存する静かな書庫",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/memory-archive/",
+  "scope": "/memory-archive/",
   "display": "standalone",
   "background_color": "#F4F1EA",
   "theme_color": "#2E4F4F",
@@ -34,7 +34,7 @@
     }
   ],
   "share_target": {
-    "action": "/share",
+    "action": "/memory-archive/share",
     "method": "GET",
     "params": {
       "title": "title",
