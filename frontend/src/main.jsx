@@ -288,7 +288,7 @@ function Reader({ archive, activeBookmark, setActiveBookmark, onMemoChange, onDe
           </button>
         </div>
         <div className="image-frame">
-          {archive.og_image_url ? <img src={archive.og_image_url} alt="" /> : <BookOpen aria-hidden="true" />}
+          <SiteIcon archive={archive} className="book-large-icon" />
         </div>
         <div className="source-meta">
           <SiteIcon archive={archive} className="detail-favicon" />

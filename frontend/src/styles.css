@@ -574,3 +574,18 @@ textarea {
     font-size: 12px;
   }
 }
+
+/* 大きなアイコン表示用のスタイル調整 */
+.book-large-icon {
+  width: 96px;         /* アイコンを適切な大きさに制限 */
+  height: 96px;
+  object-fit: contain;
+  margin: auto;        /* 枠内の中央に配置 */
+}
+
+/* 画像フレーム自体を中央揃えのレイアウトにする場合 */
+.image-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
