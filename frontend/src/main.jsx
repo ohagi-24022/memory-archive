@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import {
   Bookmark,
   BookOpen,
+  ChevronDown,
   ExternalLink,
   Library,
   Loader2,
@@ -63,7 +64,7 @@ function useArchives() {
       const data = await request("/api/archives");
       setArchives(data);
       setSelectedId((current) => current || data[0]?.id || null);
-    } catch (err) {
+    } catch {
       setArchives(sampleArchives);
       setSelectedId("sample-1");
       setError("API未接続のため、サンプル蔵書を表示しています。");
@@ -90,6 +91,7 @@ function App() {
   const [saving, setSaving] = useState(false);
   const [activeBookmark, setActiveBookmark] = useState("summary");
   const [notice, setNotice] = useState("");
+  const [shelfOpen, setShelfOpen] = useState(false);
 
   const filteredArchives = useMemo(() => {
     const keyword = query.trim().toLowerCase();
@@ -99,6 +101,11 @@ function App() {
       return haystack.includes(keyword);
     });
   }, [archives, query]);
+
+  const selectArchive = (archiveId) => {
+    setSelectedId(archiveId);
+    setShelfOpen(false);
+  };
 
   const saveUrl = async (event) => {
     event.preventDefault();
@@ -113,6 +120,7 @@ function App() {
       setArchives((current) => [created, ...current.filter((item) => item.id !== created.id)]);
       setSelectedId(created.id);
       setUrl("");
+      setShelfOpen(false);
       setNotice("新しい本を蔵書に収めました。");
     } catch (err) {
       setNotice(err.message);
@@ -146,54 +154,69 @@ function App() {
 
   return (
     <main className="app-shell">
-      <aside className="archive-rail">
-        <div className="brand">
-          <img className="brand-mark" src={`${BASE_PATH}icons/icon-192.png`} alt="" />
-          <div>
-            <p>記憶のアーカイブ</p>
-            <h1>追憶ノ書架</h1>
+      <aside className={`archive-rail ${shelfOpen ? "shelf-open" : "shelf-collapsed"}`}>
+        <div className="archive-header">
+          <div className="brand">
+            <img className="brand-mark" src={`${BASE_PATH}icons/icon-192.png`} alt="" />
+            <div>
+              <p>記憶のアーカイブ</p>
+              <h1>追憶ノ書架</h1>
+            </div>
           </div>
+
+          <button
+            className="mobile-shelf-toggle"
+            type="button"
+            aria-expanded={shelfOpen}
+            aria-controls="mobile-shelf-content"
+            onClick={() => setShelfOpen((open) => !open)}
+          >
+            <span>{shelfOpen ? "書架を閉じる" : "書架を開く"}</span>
+            <ChevronDown aria-hidden="true" />
+          </button>
         </div>
 
-        <form className="capture-form" onSubmit={saveUrl}>
-          <label htmlFor="url-input">URL</label>
-          <div className="capture-row">
-            <input
-              id="url-input"
-              value={url}
-              onChange={(event) => setUrl(event.target.value)}
-              placeholder="https://..."
-              inputMode="url"
-            />
-            <button type="submit" aria-label="蔵書に加える" disabled={saving}>
-              {saving ? <Loader2 className="spin" /> : <Plus />}
-            </button>
-          </div>
-        </form>
-
-        <div className="search-box">
-          <Search aria-hidden="true" />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="書架を探す" />
-        </div>
-
-        {notice && <p className="notice">{notice}</p>}
-        {error && <p className="notice muted">{error}</p>}
-
-        <section className="shelf" aria-label="保存済みアーカイブ">
-          {loading && <PageLoader />}
-          {!loading &&
-            filteredArchives.map((archive, index) => (
-              <button
-                className={`book-spine spine-${index % 5} ${selected?.id === archive.id ? "active" : ""}`}
-                key={archive.id}
-                onClick={() => setSelectedId(archive.id)}
-              >
-                <SiteIcon archive={archive} className="book-favicon" />
-                <span className="book-title">{archive.title}</span>
-                <span className="book-label">{archive.tags?.[0] || "未分類"}</span>
+        <div id="mobile-shelf-content" className="shelf-content">
+          <form className="capture-form" onSubmit={saveUrl}>
+            <label htmlFor="url-input">URL</label>
+            <div className="capture-row">
+              <input
+                id="url-input"
+                value={url}
+                onChange={(event) => setUrl(event.target.value)}
+                placeholder="https://..."
+                inputMode="url"
+              />
+              <button type="submit" aria-label="蔵書に加える" disabled={saving}>
+                {saving ? <Loader2 className="spin" /> : <Plus />}
               </button>
-            ))}
-        </section>
+            </div>
+          </form>
+
+          <div className="search-box">
+            <Search aria-hidden="true" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="書架を探す" />
+          </div>
+
+          {notice && <p className="notice">{notice}</p>}
+          {error && <p className="notice muted">{error}</p>}
+
+          <section className="shelf" aria-label="保存済みアーカイブ">
+            {loading && <PageLoader />}
+            {!loading &&
+              filteredArchives.map((archive, index) => (
+                <button
+                  className={`book-spine spine-${index % 5} ${selected?.id === archive.id ? "active" : ""}`}
+                  key={archive.id}
+                  onClick={() => selectArchive(archive.id)}
+                >
+                  <SiteIcon archive={archive} className="book-favicon" />
+                  <span className="book-title">{archive.title}</span>
+                  <span className="book-label">{archive.tags?.[0] || "未分類"}</span>
+                </button>
+              ))}
+          </section>
+        </div>
       </aside>
 
       <section className="reading-room">

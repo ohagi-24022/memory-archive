@@ -55,6 +55,14 @@ button {
   margin-bottom: 28px;
 }
 
+.archive-header {
+  display: block;
+}
+
+.mobile-shelf-toggle {
+  display: none;
+}
+
 .brand svg,
 .brand-mark {
   width: 42px;
@@ -613,9 +621,17 @@ textarea {
     box-shadow: 0 8px 18px rgba(23, 31, 30, 0.22);
   }
 
+  .archive-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
   .brand {
     gap: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 0;
+    min-width: 0;
   }
 
   .brand-mark,
@@ -630,6 +646,50 @@ textarea {
 
   .brand h1 {
     font-size: 22px;
+  }
+
+  .mobile-shelf-toggle {
+    min-width: 112px;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid rgba(197, 168, 128, 0.65);
+    border-radius: 6px;
+    color: #f7f1e5;
+    background: rgba(244, 241, 234, 0.12);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .mobile-shelf-toggle svg {
+    width: 17px;
+    height: 17px;
+    transition: transform 180ms ease;
+  }
+
+  .shelf-open .mobile-shelf-toggle svg {
+    transform: rotate(180deg);
+  }
+
+  .shelf-content {
+    max-height: 54svh;
+    overflow: hidden;
+    transition: max-height 200ms ease, opacity 180ms ease, margin-top 180ms ease;
+  }
+
+  .shelf-open .shelf-content {
+    margin-top: 12px;
+    opacity: 1;
+    overflow-y: auto;
+  }
+
+  .shelf-collapsed .shelf-content {
+    max-height: 0;
+    margin-top: 0;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .capture-form,
